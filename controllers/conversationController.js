@@ -48,6 +48,18 @@ exports.conversation_create = asyncHandler(async (req, res, next) => {
     res.status(201).json({ conversation });
   }
   catch (err) {
-    res.status(500).json ({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
+
+exports.conversation_get = asyncHandler(async (req, res, next) => {
+  try {
+    const conversation = await Conversation.findById(req.params.conversationId)
+      .populate('members messages')
+      .exec();
+    res.status(201).json({ conversation });
+  }
+  catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
