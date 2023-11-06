@@ -34,6 +34,17 @@ const io = new Server(server, {
   },
 })
 
-app.listen(5000, () => console.log('Server running on port 5000!'));
+io.on('connection', (socket) => {
+
+  socket.on('join_room', (data) => {
+    socket.join(data)
+  });
+
+  socket.on('send_message', (data) => {
+    socket.to(data.conversationId).emit('receive_message', data.newMessage)
+  })
+})
+
+server.listen(5000, () => console.log('Server running on port 5000!'));
 
 app.use('/api', apiRouter);

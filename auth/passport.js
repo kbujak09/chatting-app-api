@@ -24,8 +24,8 @@ passport.use(
     catch(err) {
       return done(err);
     }
-  }
-));
+  })
+);
 
 passport.use(new JWTStrategy({
   jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),

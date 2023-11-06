@@ -10,12 +10,12 @@ router.post('/signup', authController.signup);
 
 router.post('/login', authController.login);
 
-router.get('/conversations', conversationController.conversation_list);
+router.get('/conversations', passport.authenticate('jwt', {session: false}),conversationController.conversation_list);
 
-router.post('/conversations', conversationController.conversation_create);
+router.post('/conversations', passport.authenticate('jwt', {session: false}),conversationController.conversation_create);
 
-router.get('/conversations/:conversationId', conversationController.conversation_get);
+router.get('/conversations/:conversationId', passport.authenticate('jwt', {session: false}),conversationController.conversation_get);
 
-router.post('/messages', messageController.message_create);
+router.post('/messages', passport.authenticate('jwt', {session: false}),messageController.message_create);
 
 module.exports = router;

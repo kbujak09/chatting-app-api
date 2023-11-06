@@ -55,7 +55,11 @@ exports.conversation_create = asyncHandler(async (req, res, next) => {
 exports.conversation_get = asyncHandler(async (req, res, next) => {
   try {
     const conversation = await Conversation.findById(req.params.conversationId)
-      .populate('members messages')
+      .populate('members')
+      .populate({
+        path: 'messages',
+        options: { sort: { createdAt: -1 } }
+      })
       .exec();
     res.status(201).json({ conversation });
   }
