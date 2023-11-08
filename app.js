@@ -41,7 +41,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', (data) => {
-    socket.to(data.conversationId).emit('receive_message', data.newMessage)
+    console.log(data)
+    socket.to(data.toId).to(data.newMessage.from).emit('receive_message', data.newMessage)
   })
 })
 

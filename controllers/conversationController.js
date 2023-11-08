@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Conversation = require('../models/conversation');
 const User = require('../models/user');
+const Message = require('../models/message');
 
 exports.conversation_list = asyncHandler(async (req, res, next) => {
   try {
@@ -10,18 +11,21 @@ exports.conversation_list = asyncHandler(async (req, res, next) => {
 
     const list = await Conversation.find({
       members: req.query.userId,
+      messages: { $exists: true, $not: { $size: 0 } }
     })
       .populate('members', 'username')
-      .populate({
-        path: 'messages',
-        options: { sort: { createdAt: -1 }, limit: 1 },
-        populate: {
-          path: 'from',
-          model: 'User', // Replace 'User' with your actual User model
-          select: 'username',
-        },
-      })
       .exec();
+
+    for (const conversation of list) {
+      const lastMessage = await Message.findOne({
+        $and: [
+          { from: { $in: conversation.members } },
+          { to: { $in: conversation.members } }
+        ]
+      }).sort({ createdAt: -1 }).limit(1);
+
+      conversation.messages = lastMessage ? [lastMessage] : [];
+    }
 
     res.json(list);
   } catch (err) {
@@ -31,7 +35,14 @@ exports.conversation_list = asyncHandler(async (req, res, next) => {
 });
 
 exports.conversation_create = asyncHandler(async (req, res, next) => {
-  const { members } = req.body;
+  const from = await User.findById(req.body.fromId);
+  const to = await User.findOne({username: req.body.toId});
+
+  if (!to) {
+    return res.status(400).json({ error: 'User not found.' });
+  }
+
+  const members = [from._id, to._id];
   
   try {
     const existingConversation = await Conversation.findOne({
@@ -39,9 +50,9 @@ exports.conversation_create = asyncHandler(async (req, res, next) => {
     });
 
     if (existingConversation) {
-      return res.status(400).json({ error: 'Conversation already exists.'})
+      return res.status(201).json({ conversation: existingConversation })
     }
-
+    
     const conversation = await new Conversation({members});
     const savedConversation = await conversation.save();
 
@@ -56,14 +67,29 @@ exports.conversation_get = asyncHandler(async (req, res, next) => {
   try {
     const conversation = await Conversation.findById(req.params.conversationId)
       .populate('members')
-      .populate({
-        path: 'messages',
-        options: { sort: { createdAt: -1 } }
-      })
+      .populate('messages')
       .exec();
-    res.status(201).json({ conversation });
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+    
+    const lastMessage = await Message.findOne({
+      $or: [
+        { from: { $in: conversation.members } },
+        { to: { $in: conversation.members } }
+      ]
+    }).sort({ createdAt: -1 }).limit(1);
+
+    conversation.messages = conversation.messages.reverse();
+
+    conversation.lastMessage = lastMessage;
+
+    console.log(lastMessage)
+
+    res.status(200).json({ conversation });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: err });
   }
-  catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
+});
