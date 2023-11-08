@@ -18,4 +18,6 @@ router.get('/conversations/:conversationId', passport.authenticate('jwt', {sessi
 
 router.post('/messages', passport.authenticate('jwt', {session: false}),messageController.message_create);
 
+router.get('/', (req,res,next) => {res.json({message: 'Hello'})})
+
 module.exports = router;
