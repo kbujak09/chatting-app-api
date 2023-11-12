@@ -26,7 +26,9 @@ exports.signup = [
     .custom((value, { req }) => value === req.body.password),
 
   asyncHandler(async (req, res, next) => {
-    const existingUser = await User.findOne({ username: req.body.username });
+    const existingUser = await User.findOne({
+      username: { $regex: new RegExp(`^${req.body.username}$`, 'i') }
+    });
 
     if (existingUser) {
       return res.status(403).json({

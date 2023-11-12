@@ -6,7 +6,7 @@
   "proxy": "https://blue-wildflower-7641.fly.dev/",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "node app.js"
   },
   "author": "",
   "license": "ISC",
