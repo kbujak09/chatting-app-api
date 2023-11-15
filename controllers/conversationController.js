@@ -36,7 +36,9 @@ exports.conversation_list = asyncHandler(async (req, res, next) => {
 
 exports.conversation_create = asyncHandler(async (req, res, next) => {
   const from = await User.findById(req.body.fromId);
-  const to = await User.findOne({username: req.body.toId});
+  const to = await User.findOne({
+    username: { $regex: new RegExp(`^${req.body.toId}$`, 'i') }
+  });
 
   if (!to) {
     return res.status(400).json({ error: 'User not found.' });
