@@ -6,11 +6,21 @@ const bodyparser = require('body-parser');
 const apiRouter = require('./routes/api');
 const { Server } = require('socket.io');
 const http = require('http');
+const compression = require('compression');
+const helmet = require('helmet');
 
 require('dotenv').config();
 require('./auth/passport');
 
 const app = express();
+
+const RateLimit = require('express-late-limit');
+const limiter = RateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 50,
+});
+
+app.use(limiter);
 
 app.use(cors());  
 
